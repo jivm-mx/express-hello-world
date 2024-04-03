@@ -31,13 +31,11 @@ app.post('/notification', (request, response) => {
     console.log('notification is not for live environment: ', pspReference, merchantReference,amountValue, amountCurrency);
   }
 });
-
 app.get('/', (request, response) => {
   response.type('html')
   console.log('Request', request.body);
   response.send('Hello world');
 });
-
 const server = app.listen(port, () => console.log(`Listening on ${port}!`));
 server.keepAliveTimeout = 120 * 1000;
 server.headersTimeout = 120 * 1000;
