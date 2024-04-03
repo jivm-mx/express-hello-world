@@ -7,6 +7,7 @@ app.post('/notification', (request, response) => {
   response.send('[accepted]');
   live = new String('');
   pspReference = new String('');
+  merchantAccountCode = new String('');
   merchantReference = new String('');
   amountValue = new Number(0);
   amountCurrency = new String('');
@@ -17,13 +18,39 @@ app.post('/notification', (request, response) => {
     for (let i = 0; i < notification.notificationItems.length; i++) {
       Item = notification.notificationItems[i];
       pspReference = Item.NotificationRequestItem.pspReference;
+      merchantAccountCode = Item.NotificationRequestItem.merchantAccountCode
       merchantReference = Item.NotificationRequestItem.merchantReference;
       amountValue = Item.NotificationRequestItem.amount.value;
       amountCurrency = Item.NotificationRequestItem.amount.currency;
-      if (typeof pspReference === "undefined" || typeof merchantReference === "undefined" || typeof amountValue === "undefined" || typeof amountCurrency === "undefined"){
-        console.log('At least one of the following values is undefined: pspReference: ' + pspReference + ', merchantReference: ' +merchantReference+ ', amountValue: ' +amountValue+ ', amountCurrency: ' +amountCurrency);       
+      if (typeof pspReference === "undefined" || typeof merchantAccountCode === "undefined"|| typeof merchantReference === "undefined" || typeof amountValue === "undefined" || typeof amountCurrency === "undefined"){
+        console.log('At least one of the following values is undefined: pspReference: ' + pspReference + ', merchantAccountCode: ' + merchantAccountCode + ', merchantReference: ' +merchantReference + ', amountValue: ' + amountValue + ', amountCurrency: ' + amountCurrency);       
       }else{
-        console.log('Going to send capture request with the following values: pspReference: ' + pspReference + ', merchantReference: ' +merchantReference+ ', amountValue: ' +amountValue+ ', amountCurrency: ' +amountCurrency);   
+        console.log('Going to send capture request with the following values: pspReference: ' + pspReference + ', merchantAccountCode: ' + merchantAccountCode + ', merchantReference: ' +merchantReference + ', amountValue: ' + amountValue + ', amountCurrency: ' + amountCurrency);
+        prefix = process.env.PREFIX;
+        version = 'v71'; 
+        paymentURL = 'https://' + prefix + '-checkout-live.adyenpayments.com/checkout/' + version + '/payments/'+ pspReference + '/captures';
+        var request = require('request');
+        var captureRequest = {
+          'merchantAccount': merchantAccountCode,
+          'amount' : {
+            'currency' : amountCurrency,
+            'value' : amountValue
+          },
+          'reference' : merchantReference + ' capture'
+        }
+        request({
+          url: paymentURL,
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            'x-api-key': process.env.xapikey,
+          },
+          json: true,
+          body: captureRequest,
+        },function(error, response, body){
+          console.log('status is: ' + response.body.status +' for PSP: '+ pspReference);
+        }
+        );
       }    
   } 
   }
